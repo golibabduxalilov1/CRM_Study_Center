@@ -23,3 +23,96 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             "last_name",
             "phone",
         )
+
+    def validate(self, attrs):
+        if attrs["password"] != attrs["password_confirm"]:
+            raise serializers.ValidationError("Parollar mos kelmaydi")
+
+        email = attrs["email"]
+        if not AllowedEmail.objects.filter(email=email).exists():
+            raise serializers.ValidationError(
+                "Bu email manzil tizimda ro'yxatdan o'tmagan"
+            )
+
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop("password_confirm")
+        allowed_email = AllowedEmail.objects.get(email=validated_data["email"])
+        user = User.objects.create_user(
+            username=validated_data["email"], role=allowed_email.role, **validated_data
+        )
+        return user
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        if not User.objects.filter(email=email, is_active=True).exists():
+            raise serializers.ValidationError("Foydalanuvchi topilmadi yoki bloklangan")
+
+        user = authenticate(username=email, password=password)
+        if not user:
+            raise serializers.ValidationError("Email yoki parol noto'g'ri")
+
+        attrs["user"] = user
+        return attrs
+
+
+class OTPVerificationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        code = attrs.get("code")
+
+        try:
+            otp = OTPCode.objects.filter(
+                email=email, code=code, used=False, expires_at__gt=timezone.now()
+            ).first()
+
+            if not otp:
+                raise serializers.ValidationError(
+                    "Noto'g'ri yoki muddati o'tgan OTP kod"
+                )
+
+            if otp.attempts >= settings.OTP_MAX_ATTEMPTS:
+                raise serializers.ValidationError(
+                    "OTP kod uchun maksimal urinishlar soni oshirildi"
+                )
+
+            attrs["otp"] = otp
+
+        except OTPCode.DoesNotExist:
+            raise serializers.ValidationError("OTP kod topilmadi")
+
+        return attrs
+
+
+class AllowedEmailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AllowedEmail
+        fields = ("id", "email", "role", "added_by", "created_at")
+        read_only_fields = ("added_by", "created_at")
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "phone",
+            "is_active",
+            "created_at",
+        )
+        read_only_fields = ("role", "created_at")
