@@ -19,7 +19,7 @@ class StudentDetailSerializer(StudentSerializer):
     enrollments = serializers.SerializerMethodField()
 
     class Meta(StudentSerializer.Meta):
-        fields = StudentSerializer.Meta.fields + ("enrollments",)
+        fields = StudentSerializer.Meta.fields + ("enrollments")
 
     def get_enrollments(self, obj):
         from apps.groups.serializers import EnrollmentSerializer

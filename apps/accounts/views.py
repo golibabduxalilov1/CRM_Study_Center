@@ -92,3 +92,29 @@ def logout(request):
         return Response({"message": "Tizimdan muvaffaqiyatli chiqdingiz"})
     except Exception as e:
         return Response({"error": "Token yaroqsiz"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AllowedEmailListCreateView(generics.ListCreateAPIView):
+    permission_classes = [CanManageAllowlist]
+    serializer_class = AllowedEmailSerializer
+
+    def get_queryset(self):
+        return AllowedEmail.objects.select_related("added_by").all()
+
+    def perform_create(self, serializer):
+        serializer.save(added_by=self.request.user)
+
+
+class AllowedEmailDestroyView(generics.DestroyAPIView):
+    queryset = AllowedEmail.objects.all()
+    permission_classes = [CanManageAllowlist]
+
+
+class UserListView(generics.ListAPIView):
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        role = self.kwargs.get("role")
+        if role:
+            return User.objects.filter(role=role.upper(), is_active=True)
+        return User.objects.filter(is_active=True)

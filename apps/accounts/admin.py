@@ -18,28 +18,6 @@ class UserAdmin(ModelAdmin):
     search_fields = ("username", "email", "phone")
     ordering = ("-created_at",)
 
-    fieldsets = (
-        ("Asosiy ma'lumotlar", {"fields": ("username", "email", "password")}),
-        ("Shaxsiy ma'lumotlar", {"fields": ("first_name", "last_name", "phone")}),
-        (
-            "Ruxsatlar",
-            {
-                "fields": (
-                    "role",
-                    "is_active",
-                    "is_staff",
-                    "is_superuser",
-                    "groups",
-                    "user_permissions",
-                )
-            },
-        ),
-        (
-            "Muhim sanalar",
-            {"fields": ("last_login", "date_joined", "created_at", "updated_at")},
-        ),
-    )
-
 
 @admin.register(AllowedEmail)
 class AllowedEmailAdmin(ModelAdmin):

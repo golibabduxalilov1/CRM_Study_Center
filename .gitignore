@@ -1,10 +1,8 @@
 # .gitignore
-# Byte-compiled /C /Python byte code
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -24,17 +22,12 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
-# Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
 htmlcov/
 .tox/
 .nox/
@@ -49,21 +42,17 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Translations
 *.mo
 *.pot
 
-# Django stuff:
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
-# Django migrations
 **/migrations/*
 !**/migrations/__init__.py
 
-# Environment variables
 .env
 .env.local
 .venv
@@ -71,22 +60,18 @@ env/
 venv/
 ENV/
 
-# Virtualenv
 .venv
 env/
 venv/
 ENV/
 
-# Media / static files
 /media/
 /staticfiles/
 
-# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS
 .DS_Store
 Thumbs.db
