@@ -41,4 +41,4 @@ class GroupDetailSerializer(GroupSerializer):
     )
 
     class Meta(GroupSerializer.Meta):
-        fields = GroupSerializer.Meta.fields + ("enrollments",)
+        fields = GroupSerializer.Meta.fields + "enrollments"

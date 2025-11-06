@@ -8,8 +8,8 @@ from apps.core.permissions import IsBossOrAdmin, IsSuperAdminOrBoss
 
 
 class PaymentListCreateView(generics.ListCreateAPIView):
-    permission_classes = [IsBossOrAdmin]
     serializer_class = PaymentSerializer
+    permission_classes = [IsBossOrAdmin]
 
     def get_queryset(self):
         user = self.request.user
@@ -18,8 +18,6 @@ class PaymentListCreateView(generics.ListCreateAPIView):
         elif user.role == "MENTOR":
             return Payment.objects.filter(group__mentor=user)
         return Payment.objects.none()
-
-        return
 
 
 class PaymentDetailView(generics.RetrieveUpdateAPIView):
@@ -44,6 +42,7 @@ def update_payment_status(request, payment_id):
             "payment_method", payment.payment_method
         )
         payment.save()
+
         return Response(
             {
                 "message": "To'lov holati yangilandi",
@@ -55,8 +54,56 @@ def update_payment_status(request, payment_id):
 
 
 class CommissionGlobalView(generics.RetrieveUpdateAPIView):
-    serializer_class = CommissionSettingSerializer
     permission_classes = [IsSuperAdminOrBoss]
+    serializer_class = CommissionSettingSerializer
 
     def get_object(self):
-        return super().get_object()
+        obj, created = CommissionSetting.objects.get_or_create(
+            type="GLOBAL", defaults={"mentor_percentage": 60, "center_percentage": 40}
+        )
+        return obj
+
+
+@api_view(["PUT"])
+@permission_classes([IsBossOrAdmin])
+def update_group_commission(request, group_id):
+    from apps.groups.models import Group
+
+    try:
+        group = Group.objects.get(id=group_id)
+        commission, created = CommissionSetting.objects.get_or_create(
+            type="GROUP", group=group
+        )
+
+        serializer = CommissionSettingSerializer(
+            commission, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Group.DoesNotExist:
+        return Response({"error": "Guruh topilmadi"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["PUT"])
+@permission_classes([IsBossOrAdmin])
+def update_mentor_commission(request, mentor_id):
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    try:
+        mentor = User.objects.get(id=mentor_id, role="MENTOR")
+        commission, created = CommissionSetting.objects.get_or_create(
+            type="MENTOR", mentor=mentor
+        )
+
+        serializer = CommissionSettingSerializer(
+            commission, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except User.DoesNotExist:
+        return Response({"error": "Mentor topilmadi"}, status=status.HTTP_404_NOT_FOUND)
